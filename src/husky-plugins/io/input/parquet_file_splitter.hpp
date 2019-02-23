@@ -18,6 +18,7 @@
 #include <string>
 
 #include "boost/utility/string_ref.hpp"
+#include "hdfs/hdfs.h"
 #include "parquet/file_reader.h"
 
 #include "io/input/file_splitter_base.hpp"
@@ -41,7 +42,7 @@ class PARQUETFileSplitter final : public FileSplitterBase {
     // current file
     boost::string_ref fetch_block(bool is_next = false) override;
 
-    int read_block(const std::string& fn) override {}
+    int read_block(const std::string& fn) override { return 0; }
 
     // get the starting position of splitter
     // just to keep consistent with LineInputFormat
@@ -70,6 +71,9 @@ class PARQUETFileSplitter final : public FileSplitterBase {
 
     // PARQUET reader to help to read PARQUET files
     std::unique_ptr<parquet::ParquetFileReader> reader_;
+
+    // handle of HDFS
+    hdfsFS fs_;
 };
 
 }  // namespace io

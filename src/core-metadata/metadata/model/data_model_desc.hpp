@@ -14,11 +14,12 @@
 
 #pragma once
 
-#include <list>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
+
+#include "nlohmann/json.hpp"
 
 #include "core-metadata/metadata/model/model_dimension_desc.hpp"
 #include "core-metadata/metadata/model/table_desc.hpp"
@@ -28,46 +29,51 @@
 namespace husky {
 namespace cube {
 
+using nlohmann::json;
+
 class DataModelDesc {
    public:
     DataModelDesc() {}
-    DataModelDesc(const std::string& modelJsonPath, const std::string& tableJsonPath);
     ~DataModelDesc() {}
 
     inline const std::string& get_name() const { return name_; }
-    // std::string getOwner();
-    // void setOwner(const std::string& owner);
+    inline const std::shared_ptr<TableRef>& get_root_fact_table_ref() const { return root_fact_table_ref_; }
 
-    std::shared_ptr<TableRef> get_root_fact_table_ref() const { return root_fact_table_ref_; }
-    TableRef* find_table(std::string& table) const;  // has side effect on table
-    TblColRef* find_column(std::string& table, std::string& column) const;
-    TblColRef* find_column(std::string& column) const;
+    std::shared_ptr<TableRef> find_table(std::string& table) const;  // has side effect on table
+    std::shared_ptr<TblColRef> find_column(std::string& table, std::string& column) const;
+    std::shared_ptr<TblColRef> find_column(std::string& column) const;
 
-   private:
-    /*For now, suppose only one fact table, no lookup tables*/
+    void init(const json& model_json, const std::map<std::string, std::shared_ptr<json>>& table_jsons);
 
-    // from json
-    std::string name_;
-    // std::string owner;
-    std::string root_fact_table_;  // "fact_table"
-    // std::vector<JoinTableDesc *> jointTables; //"lookups"
-    std::list<ModelDimensionDesc> dimensions_;  // "dimensions"
-    std::vector<std::string> metrics_;          // "metrics"
-
-    // computed attributes
-    std::shared_ptr<TableRef> root_fact_table_ref_;
-    // std::set<TableRef *> factTableRefs;
-    // std::set<TableRef *> loopkupTableRefs;
-    std::set<std::shared_ptr<TableRef>> all_table_refs_;
-    // std::map<std::string, TableRef* > aliasMap; // alias => TableRef, a table has exactly one alias
-    std::map<std::string, TableRef*> table_name_map_;  // name => TableRef, a table maybe referenced by multiple names
-    // JoinsTree * joinsTree;
+   protected:
+    void init_root_fact_table_ref(const json& table_json);
+    void init_lookup_table_refs(const json& model_json,
+                                const std::map<std::string, std::shared_ptr<json>>& table_jsons);
 
     void add_table_name(const std::string& name, const std::shared_ptr<TableRef>& ref);
     // void addAlias(TableRef * ref);
     // void initRootTable(TableDesc * rootTableDesc);
     // void initDimensionAndMetrics();
-    // void init(TableDesc * rootTableDesc);
+
+   private:
+    // from json
+    std::string name_;
+    std::string root_fact_table_;                 // "fact_table"
+    std::vector<ModelDimensionDesc> dimensions_;  // "dimensions"
+    std::vector<std::string> metrics_;            // "metrics"
+
+    // computed attributes
+    std::shared_ptr<TableRef> root_fact_table_ref_;
+    std::set<std::shared_ptr<TableRef>> all_table_refs_;
+    // name => TableRef, a table maybe referenced by multiple names
+    std::map<std::string, std::shared_ptr<TableRef>> table_name_map_;
+
+    // std::string owner;
+    // std::vector<JoinTableDesc *> jointTables; //"lookups"
+    // std::set<TableRef *> factTableRefs;
+    // std::set<TableRef *> loopkupTableRefs;
+    // std::map<std::string, TableRef* > aliasMap; // alias => TableRef, a table has exactly one alias
+    // JoinsTree * joinsTree;
 };
 
 }  // namespace cube

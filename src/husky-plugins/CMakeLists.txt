@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_directories(${PROJECT_SOURCE_DIR} ${EXTERNAL_INCLUDE})
+include_directories(${PROJECT_SOURCE_DIR} ${EXTERNAL_INCLUDE} ${HUSKY_EXTERNAL_INCLUDE})
 set(husky-kylin husky extension-husky-io extension-husky-master) 
 
 ### IO ###
 file(GLOB io-input-src-files
+    io/input/file_broadcast_inputformat.cpp
     io/input/orc_file_splitter.cpp
     io/input/orc_inputformat.cpp
     io/input/parquet_file_splitter.cpp

@@ -16,13 +16,16 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "boost/utility/string_ref.hpp"
+#include "hdfs/hdfs.h"
 #include "orc/ColumnPrinter.hh"
 #include "orc/orc-config.hh"
 
 #include "io/input/file_splitter_base.hpp"
 
+#include "husky-plugins/nlohmann/json.hpp"
 namespace husky {
 namespace io {
 
@@ -39,29 +42,37 @@ class ORCFileSplitter final : public FileSplitterBase {
     // ---------------is ture if can directly read the next block using the
     // current file
     boost::string_ref fetch_block(bool is_next = false) override;
-    int read_block(const std::string& fn) override {}
+    int read_block(const std::string& fn) override { return 0; }
     // get the starting position of splitter
     // just to keep consistent with LineInputFormat
     inline size_t get_offset() { return offset_; }
+     
+    bool computeBoolRes(nlohmann::json conds, orc::ColumnVectorBatch& batch, int rowId, int num_of_fields);
 
    protected:
-    // TODO(dy): coding style: names of private and protected variables end with
+    // TODO dy: coding style: names of private and protected variables end with
     // underscore
-    void read_by_row(std::string fn);
+    boost::string_ref read_by_batch(size_t offset);
     // url may be a directory or a file
     std::string url_;
     // row_batch_size lines of record
-    std::string buffer;
+    std::string buffer_;
     // starting position of reading
     size_t offset_;
     // block_size of one fetch_block operation
-    static size_t row_batch_size;
+    static size_t row_batch_size_;
     // protocol can be hdfs or nfs
     std::string protocol_;
     // current filename
-    std::string cur_fn;
+    std::string cur_fn_;
     // orc reader to help to read orc files
-    std::unique_ptr<orc::Reader> reader;
+    std::unique_ptr<orc::Reader> reader_;
+    // handle of HDFS
+    hdfsFS fs_;
+
+    nlohmann::json conds_;
+
+    std::vector<int> fieldTypes_;
 };
 
 }  // namespace io

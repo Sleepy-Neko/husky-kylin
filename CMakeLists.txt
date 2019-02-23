@@ -25,6 +25,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -w")
 endif()
 
+# PARQUET require Thrift version 0.11.0
+set(WITHOUT_THRIFT true) # workaround for avoiding using old thrift installation on cluster
+
 ### Third-party
 # Submodule
 add_subdirectory(husky)
@@ -36,12 +39,15 @@ include(dep)
 
 include_directories(src)
 
+add_definitions(${HUSKY_EXTERNAL_DEFINITION})
+
 ### Directories
 # Sources
 add_subdirectory(src/core-cube)
 add_subdirectory(src/core-metadata)
 add_subdirectory(src/husky-plugins)
 add_subdirectory(src/utils)
+add_subdirectory(src/algorithm)
 
 # Examples & Tests
 add_subdirectory(examples)

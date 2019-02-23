@@ -15,8 +15,10 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "core-metadata/metadata/model/table_desc.hpp"
 #include "core-metadata/metadata/model/tbl_col_ref.hpp"
@@ -32,17 +34,22 @@ class TableRef {
     TableRef(DataModelDesc* model, const std::string& alias, TableDesc&& table);
     ~TableRef() {}
 
-    TblColRef* get_column(const std::string& name);
+    std::shared_ptr<TblColRef> get_column(const std::string& name) const;
     inline const std::string& get_alias() const { return alias_; }
     const TableDesc& get_table_desc() { return table_; }
     inline const std::string& get_table_name() const { return table_.get_name(); }
+
+    inline void set_foreign_keys(std::vector<std::string>&& foreign_keys) { foreign_keys_ = std::move(foreign_keys); }
+    inline const std::vector<std::string>& get_foreign_keys() const { return foreign_keys_; }
 
    private:
     std::string model_name_;
     std::string alias_;
     DataModelDesc* model_;  // not owned, this is my owner
     TableDesc table_;
-    std::map<std::string, TblColRef> columns_;
+    std::map<std::string, std::shared_ptr<TblColRef>> columns_;
+
+    std::vector<std::string> foreign_keys_;
 };
 
 }  // namespace cube

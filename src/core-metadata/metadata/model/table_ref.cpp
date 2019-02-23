@@ -14,7 +14,9 @@
 
 #include "core-metadata/metadata/model/table_ref.hpp"
 
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "glog/logging.h"
@@ -32,16 +34,17 @@ TableRef::TableRef(DataModelDesc* model, const std::string& alias, TableDesc&& t
     model_name_ = model->get_name();
     std::vector<ColumnDesc>& column_vector = table_.get_columns();
     for (std::vector<ColumnDesc>::iterator it = column_vector.begin(); it != column_vector.end(); ++it) {
-        columns_.insert(std::make_pair(it->get_name(), TblColRef(this, &(*it))));
+        columns_.insert(std::make_pair(it->get_name(), std::make_shared<TblColRef>(this, &(*it))));
     }
 }
 
-TblColRef* TableRef::get_column(const std::string& name) {
+std::shared_ptr<TblColRef> TableRef::get_column(const std::string& name) const {
     auto pos = columns_.find(name);
     if (pos == columns_.end()) {
+        DLOG(WARNING) << "Did not find column " << name << " in table " << table_.get_name();
         return nullptr;
     }
-    return &(pos->second);
+    return pos->second;
 }
 
 }  // namespace cube
